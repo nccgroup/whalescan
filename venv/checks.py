@@ -5,6 +5,7 @@ import docker
 import pprint
 import checks
 import sys
+from docker import APIClient
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -20,21 +21,23 @@ class bcolors:
 
 def main(containerID):
 
+    client = docker.from_env()
+    APIClient = docker.APIClient(base_url='')
+
     # Check whether container can acquire new privileges
     def checkNewPrivileges(containerID):
-        client = docker.from_env()
-        APIClient = docker.APIClient(base_url='')
+        host_config = APIClient.inspect_container(containerID)['HostConfig']
+        #pp.pprint(host_config)
 
-        for container in client.containers.list():
-            print(container.id)
-            host_config = APIClient.inspect_container(container.id)['HostConfig']
-            pp.pprint(host_config)
+        sec_op_value = host_config.get("SecurityOpt")
+        print(sec_op_value)
+        if sec_op_value == None:
+            print(bcolors.WARNING + "Privilege escalation: Security options not set - processes are able to gain additional privileges" + bcolors.ENDC)
 
-            sec_op_value = host_config.get("SecurityOpt")
-            print(sec_op_value)
-            if sec_op_value == None:
-                print(bcolors.WARNING + "Potential privilege escalation: Security options not set - processes are able to gain additional privileges" + bcolors.ENDC)
+    def checkPortMapping(containerID):
+        cli = docker.APIClient(base_url='')
+        print(containerID)
+        print(cli.port(containerID, 80))
 
-
-
+    checkPortMapping(containerID)
     checkNewPrivileges(containerID)
