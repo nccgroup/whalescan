@@ -73,7 +73,7 @@ def main():
             with open('permissions.csv', mode='r') as csv_file:
                 csv_reader = csv.DictReader(csv_file)
                 for row in csv_reader:
-                    if("Administrator" not in row["IdentityReference"]):
+                    if("Administrator" or "NT AUTHORITY\SYSTEM" not in row["IdentityReference"]):
                         if(row["FileSystemRights"] in disallowed_permissions):
                             print(bcolors.WARNING + row["IdentityReference"] + " has " + row["FileSystemRights"] + " rights on " + file + bcolors.ENDC)
                             dangerous_permissions = 1
@@ -83,6 +83,18 @@ def main():
                     print(bcolors.WARNING + "Only Administrators should be able to modify .def files! " + bcolors.ENDC)
 
 
+    #Check whether Administrator owns C:\ProgramData\docker, which contains sensitive files such as certificates and keys
+    def checkDockerFolderPermissions():
+        print("\n[#] Checking permissions for C:\ProgramData\docker...")
+        if os.path.isfile('C:\ProgramData\docker'):
+            f = win32security.GetFileSecurity("C:\ProgramData\docker", win32security.OWNER_SECURITY_INFORMATION)
+            (username, domain, sid_name_use) = win32security.LookupAccountSid(None, f.GetSecurityDescriptorOwner())
+
+            if username != 'Administrator':
+                print(bcolors.WARNING + "Directory C:\\ProgramData\docker is not owned by Administrator" + bcolors.ENDC)
+        else:
+            print("C:\ProgramData\docker not found")
 
     checkDockerDaemonJsonFile()
     checkFilePermissions()
+    checkDockerFolderPermissions()
