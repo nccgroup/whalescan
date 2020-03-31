@@ -23,10 +23,12 @@ def main(containerID):
 
     client = docker.from_env()
     APIClient = docker.APIClient(base_url='')
+    cli = docker.APIClient(base_url='')
 
     # Check whether container can acquire new privileges
     def checkNewPrivileges(containerID):
-        print("\n* Checking if container can gain new privileges...")
+        print("\n[#] Checking if container can gain new privileges...")
+
         host_config = APIClient.inspect_container(containerID)['HostConfig']
         #pp.pprint(host_config)
 
@@ -36,6 +38,8 @@ def main(containerID):
 
     #check whether docker services are mapped to any sensitive ports
     def checkDockerPortMappings(containerID):
+        print("\n[#] Checking port mappings for container... ")
+
         cli = docker.APIClient(base_url='')
         print(containerID)
 
@@ -45,5 +49,20 @@ def main(containerID):
                 if((p['HostIp'] == '0.0.0.0') & ([p['HostPort'] == '2375'])):
                     print("Root access: Docker daemon is listening on ")
 
+    #check logical drives storing containers
+    def checkContainerStorage(containerID):
+        print("\n[#] Checking container storage... ")
+
+        container_info = client.info()
+        logical_drive = container_info.get('DockerRootDir')[0:3]
+        if(logical_drive == "C:\\"):
+            print(bcolors.WARNING + "   Potential DoS: Under attack, the C:\\ drive could fill up, causing containers and the host itself to become unresponsive" + bcolors.ENDC)
+
+
+
+
+
+
 
     checkNewPrivileges(containerID)
+    checkContainerStorage(containerID)
