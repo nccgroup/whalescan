@@ -61,8 +61,8 @@ def main():
 
             #Check who has write permissions using powershell get-acl function, then export to csv
             print("\n[#] Checking file permissions for " + file + "...")
+            sleep(3)
             dir = subprocess.Popen('powershell.exe (get-acl ' + file + ').access | Select IdentityReference,FileSystemRights,AccessControlType,IsInherited,InheritanceFlags,access | Sort-Object IdentityReference |  Export-Csv permissions.csv -NoTypeInformation')
-            sleep(1)
             f = open("permissions.csv", "r")
 
             #Permissions that users other than admin should not have
