@@ -59,13 +59,5 @@ def main(containerID):
             print(bcolors.WARNING + "   Potential DoS: Under attack, the C: drive could fill up, causing containers and the host itself to become unresponsive" + bcolors.ENDC)
 
 
-
-
-
-
-
-
-
-
     checkNewPrivileges(containerID)
     checkContainerStorage(containerID)
