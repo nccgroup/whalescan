@@ -54,26 +54,25 @@ def main():
             print("\n[#] Checking file ownership for " + file + "...")
             f = win32security.GetFileSecurity(file, win32security.OWNER_SECURITY_INFORMATION)
             (username, domain, sid_name_use) = win32security.LookupAccountSid(None, f.GetSecurityDescriptorOwner())
-
             if username != 'Administrator':
                 print(bcolors.WARNING + "   File " + file + " is not owned by Administrator" + bcolors.ENDC)
 
             #Check who has write permissions using powershell get-acl function, then export to csv
             print("\n[#] Checking file permissions for " + file + "...")
-            sleep(5)
-            dir = subprocess.Popen('powershell.exe (get-acl ' + file + ').access | Select IdentityReference,FileSystemRights,AccessControlType,IsInherited,InheritanceFlags,access | Sort-Object IdentityReference |  Export-Csv permissions.csv -NoTypeInformation')
-            f = open("permissions.csv", "r")
+            sleep(8)
+            dir = subprocess.Popen('powershell.exe (get-acl ' + file + ').access | Select IdentityReference,FileSystemRights,AccessControlType,IsInherited,InheritanceFlags,access | Sort-Object IdentityReference |  Export-Csv ' + file + '.csv -NoTypeInformation')
+            f = open(file + ".csv", "r")
 
             #Permissions that users other than admin should not have
             disallowed_permissions = ['FullControl','Modify','Write','WriteAttributes','WriteData','WriteExtendedAttributes']
 
             #Check whether any non-admin users have any permissions they shouldn't have
             dangerous_permissions = 0
-            with open('permissions.csv', mode='r') as csv_file:
+            with open(file + ".csv", mode='r') as csv_file:
                 csv_reader = csv.DictReader(csv_file)
                 for row in csv_reader:
-                    if("Administrator" or "NT AUTHORITY\SYSTEM" not in row["IdentityReference"]):
-                        if(row["FileSystemRights"] in disallowed_permissions):
+                    if "Administrator" or "NT AUTHORITY\SYSTEM" not in row["IdentityReference"]:
+                        if row["FileSystemRights"] in disallowed_permissions:
                             print(bcolors.WARNING + row["IdentityReference"] + " has " + row["FileSystemRights"] + " rights on " + file + bcolors.ENDC)
                             dangerous_permissions = 1
 
@@ -93,6 +92,9 @@ def main():
                 print(bcolors.WARNING + "Directory C:\\ProgramData\docker is not owned by Administrator" + bcolors.ENDC)
         else:
             print("C:\ProgramData\docker not found")
+
+
+
 
     checkDockerDaemonJsonFile()
     checkFilePermissions()
