@@ -22,6 +22,7 @@ class bcolors:
 
 
 def main():
+    print("\n[#] Checking for unsafe commands in dockerfile...")
 
     client = docker.from_env()
     APIClient = docker.APIClient(base_url='')
@@ -32,18 +33,24 @@ def main():
 
     # get image history for each image
     for image in images:
-        print(image)
         add_used = 0
+        iwr_used = 0
         image_history = image.history()
         image = str(image)
         image = re.findall(r"'(.*?)'", image, re.DOTALL)
-        print(image[0])
 
-        # get image history for each layer of an image
+        # check if ADD command is used in docker history
         for layer in image_history:
             docker_commands = layer.get('CreatedBy')
             if 'ADD' in docker_commands:
                 add_used = 1
+            if 'Invoke-WebRequest' in docker_commands:
+                if docker_commands.find('Invoke-WebRequest') == -1:
+                     iwr_used = 1
+
 
         if add_used == 1:
             print(bcolors.WARNING + "Image " + str(image[0]) + " contains ""ADD"" command in docker history, which retrieves and unpacks files from remote URLs. Docker COPY should be used instead."+ bcolors.ENDC)
+        if iwr_used == 1:
+            print(bcolors.WARNING + "Image " + str(image[0]) + " uses ""Invoke-WebRequest"" to download files without any hash verification. " + bcolors.ENDC)
+
