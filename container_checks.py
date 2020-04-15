@@ -56,7 +56,10 @@ def main(containerID):
         container_info = client.info()
         logical_drive = container_info.get('DockerRootDir')[0:3]
         if(logical_drive == "C:\\"):
-            print(bcolors.WARNING + "   Potential DoS: Under attack, the C:\\ drive could fill up, causing containers and the host itself to become unresponsive" + bcolors.ENDC)
+            print(bcolors.WARNING + "   Potential DoS: Under attack, the C: drive could fill up, causing containers and the host itself to become unresponsive" + bcolors.ENDC)
+
+
+
 
 
 
