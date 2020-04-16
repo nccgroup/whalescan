@@ -4,6 +4,7 @@ from time import sleep
 import docker
 import container_checks
 import config_file_checks
+import docker_version_checks
 import image_checks
 
 client = docker.from_env()
@@ -29,10 +30,14 @@ for image in images:
      image_checks.main(image)
 
 
+#Checking docker version and updates
+print("\n################## Checking docker version ################## ")
+docker_version_checks.main()
 
 
 
 #Checking configuration files for vulnerabilities
 print("\n################## Checking config files ################## ")
 config_file_checks.main()
+
 
