@@ -44,7 +44,10 @@ def main(image):
                 add_used = 1
             if 'Invoke-WebRequest' in docker_commands:
                 if docker_commands.find('Invoke-WebRequest') == -1:
-                     iwr_used = 1
+                    if 'Get-FileHash' not in docker_commands:
+                        iwr_used = 1
+
+            #print(docker_commands)
 
 
         if add_used == 1:
@@ -53,7 +56,6 @@ def main(image):
             print(bcolors.WARNING + "Unverified files: Image " + str(image[0]) + " uses ""Invoke-WebRequest"" to download files without any hash verification. " + bcolors.ENDC)
 
     def checkImageVersion(image):
-        print("\n[#] Checking if latest version of image is used...")
 
         #Get all commands used in dockerfile
         image_history = image.history()
