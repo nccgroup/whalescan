@@ -12,6 +12,8 @@ import subprocess
 import csv
 import sys
 import pprint
+import re
+import docopt
 
 def main():
     class bcolors:
@@ -84,18 +86,37 @@ def main():
     #Check whether Administrator owns C:\ProgramData\docker, which contains sensitive files such as certificates and keys
     def checkDockerFolderPermissions():
         print("\n[#] Checking permissions for C:\ProgramData\docker...")
-        if os.path.isfile('C:\ProgramData\docker'):
-            f = win32security.GetFileSecurity("C:\ProgramData\docker", win32security.OWNER_SECURITY_INFORMATION)
-            (username, domain, sid_name_use) = win32security.LookupAccountSid(None, f.GetSecurityDescriptorOwner())
 
-            if username != 'Administrator':
-                print(bcolors.WARNING + "Directory C:\\ProgramData\docker is not owned by Administrator" + bcolors.ENDC)
-        else:
-            print("C:\ProgramData\docker not found")
+        #if os.path.isfile('C:\ProgramData\docker'):
+        f = win32security.GetFileSecurity("C:\ProgramData\docker", win32security.OWNER_SECURITY_INFORMATION)
+        (username, domain, sid_name_use) = win32security.LookupAccountSid(None, f.GetSecurityDescriptorOwner())
 
+        if username != 'Administrator':
+            print(bcolors.WARNING + "Directory C:\\ProgramData\docker is not owned by Administrator" + bcolors.ENDC)
+        #else:
+            #int("C:\ProgramData\docker not found")
 
+    def checkAddedDevices():
+        print("\n[#] Checking if external devices have been added to containers...")
+
+        #Check if a COM port has been added to containers (there are 256 ports in total)
+        devices=[]
+        f=open('C:\Windows\System32\containers\wsc.def', 'r')
+        for line in f:
+            if "COM" in line:
+                start = 'path="\\'
+                end = '" scope='
+                s = line
+                result = (s.split(start))[1].split(end)[0]
+                devices.append(result)
+
+        f.close()
+
+        if devices != 0:
+            print(bcolors.WARNING + "Containers can access the following devices: " + ', '.join(devices) + bcolors.ENDC)
 
 
     checkDockerDaemonJsonFile()
     checkFilePermissions()
     checkDockerFolderPermissions()
+    checkAddedDevices()
