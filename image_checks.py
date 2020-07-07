@@ -5,7 +5,10 @@ import command
 import os
 import docker
 import pprint
+
+import requests
 import sys
+from bs4 import BeautifulSoup
 from docker import APIClient
 import re
 
@@ -69,8 +72,41 @@ def main(image):
                     image = re.findall(r"'(.*?)'", image, re.DOTALL)
                     print(bcolors.WARNING + "Cache attack: Image " + str(image[0]) + " is not using the latest tag. This should be used to get the most up to date image. " + bcolors.ENDC)
 
+
+    def checkNodeVersions(image):
+
+        #get list of images
+        cli = docker.APIClient(base_url='')
+        client = docker.from_env()
+
+        #checking if dotnet is running
+        print(cli.inspect_image(image.id)['Config']['Env'])
+        if(cli.inspect_image(image.id)['Config']['Env'] != None):
+            if('DOTNET_RUNNING_IN_CONTAINER=true' in cli.inspect_image(image.id)['Config']['Env']):
+                if re.search('DOTNET_VERSION', str(cli.inspect_image(image.id)['Config']['Env'])):
+
+                    #get dotnet version
+                    print('\n[#] Dotnet running, checking version...')
+                    r = re.compile(".*DOTNET_VERSION.*")
+                    version = str(list(filter(r.match, cli.inspect_image(image.id)['Config']['Env'])))
+                    start = "DOTNET_VERSION="
+                    end = "'"
+                    s = version
+                    version = (s.split(start))[1].split(end)[0]
+                    print(version[0:3])
+
+                    url = 'https://github.com/dotnet/announcements/issues?q=is%3Aopen+is%3Aissue+label%3A%22.NET+Core+' + version + '%22+label%3ASecurity'
+                    page = requests.get(url)
+                    soup = BeautifulSoup(page.content, 'html.parser')
+                    #print(soup)
+
+                    # get latest version
+
+
+
     checkDockerHistory(image)
-    checkImageVersion(image)
+    #checkImageVersion(image)
+    checkNodeVersions(image)
 
 
 
