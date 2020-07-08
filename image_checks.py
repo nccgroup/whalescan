@@ -12,6 +12,9 @@ from bs4 import BeautifulSoup
 from docker import APIClient
 import re
 
+import cve_check
+import get_versions
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -85,23 +88,22 @@ def main(image):
             if('DOTNET_RUNNING_IN_CONTAINER=true' in cli.inspect_image(image.id)['Config']['Env']):
                 if re.search('DOTNET_VERSION', str(cli.inspect_image(image.id)['Config']['Env'])):
 
-                    #get dotnet version
+                    #get .net version
                     print('\n[#] Dotnet running, checking version...')
                     r = re.compile(".*DOTNET_VERSION.*")
                     version = str(list(filter(r.match, cli.inspect_image(image.id)['Config']['Env'])))
                     start = "DOTNET_VERSION="
                     end = "'"
                     s = version
-                    version = (s.split(start))[1].split(end)[0]
-                    print(version[0:3])
+                    version = (s.split(start))[1].split(end)[0][0:3]
 
-                    url = 'https://github.com/dotnet/announcements/issues?q=is%3Aopen+is%3Aissue+label%3A%22.NET+Core+' + version + '%22+label%3ASecurity'
-                    page = requests.get(url)
-                    soup = BeautifulSoup(page.content, 'html.parser')
-                    #print(soup)
+                    #compare to latest version
+                    latestVersion = get_versions.getCurrentDotnetVersion()
+                    if version < latestVersion:
+                        print(bcolors.WARNING + "Using outdated .NET version - consider upgrading to " + latestVersion + bcolors.ENDC)
 
-                    # get latest version
-
+                    #run CVE check for .net version
+                    cve_check.dotnetCVEs(image, version)
 
 
     checkDockerHistory(image)

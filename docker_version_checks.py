@@ -46,9 +46,7 @@ def main():
         versions = soup.find_all('h2')
         latest_version = versions[0].text
         if version.parse(current_version) < version.parse(latest_version):
-            print(bcolors.WARNING + "\n  Outdated version of Docker: The latest version is " + latest_version + ". Update Docker Engine to get latest security patches." + bcolors.ENDC)
+            print(bcolors.WARNING + "\n  Outdated version of Docker: Update Docker Engine to get latest security patches." + bcolors.ENDC)
 
 
-
-    exit()
 

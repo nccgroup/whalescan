@@ -49,6 +49,7 @@ def main(containerID):
                 if((p['HostIp'] == '0.0.0.0') & ([p['HostPort'] == '2375'])):
                     print("Root access: Docker daemon is listening on ")
 
+
     #check logical drives storing containers
     def checkContainerStorage(containerID):
         print("\n[#] Checking container storage... ")
@@ -58,6 +59,10 @@ def main(containerID):
         if(logical_drive == "C:\\"):
             print(bcolors.WARNING + "   Potential DoS: Under attack, the C: drive could fill up, causing containers and the host itself to become unresponsive" + bcolors.ENDC)
 
+    #def healthCheckVerification(containerID):
+    #TODO
+
 
     checkNewPrivileges(containerID)
     checkContainerStorage(containerID)
+    #healthCheckVerification(containerID)
