@@ -75,40 +75,32 @@ def main(image):
                     image = re.findall(r"'(.*?)'", image, re.DOTALL)
                     print(bcolors.WARNING + "Cache attack: Image " + str(image[0]) + " is not using the latest tag. This should be used to get the most up to date image. " + bcolors.ENDC)
 
+    def checkifEOL(versionUsed):
 
-    def checkNodeVersions(image):
+        # check if it is end of life
+        EOLversions = []
+        url = 'https://github.com/dotnet/core/blob/master/microsoft-support.md'
+        page = requests.get(url)
+        soup = BeautifulSoup(page.content, 'html.parser')
 
-        #get list of images
-        cli = docker.APIClient(base_url='')
-        client = docker.from_env()
+        main_content = soup.findAll('table')[1]
+        tbody = main_content.findAll('tbody')
 
-        #checking if dotnet is running
-        print(cli.inspect_image(image.id)['Config']['Env'])
-        if(cli.inspect_image(image.id)['Config']['Env'] != None):
-            if('DOTNET_RUNNING_IN_CONTAINER=true' in cli.inspect_image(image.id)['Config']['Env']):
-                if re.search('DOTNET_VERSION', str(cli.inspect_image(image.id)['Config']['Env'])):
+        #get array of EOL versions
+        for tr in tbody:
+            tr = tr.findAll("tr")
+            # print(tr)
+            for each_tr in tr:
+                versionString = each_tr.findAll("td")[0].text
+                version = versionString[-3:]
+                EOLversions.append(version)
 
-                    #get .net version
-                    print('\n[#] Dotnet running, checking version...')
-                    r = re.compile(".*DOTNET_VERSION.*")
-                    version = str(list(filter(r.match, cli.inspect_image(image.id)['Config']['Env'])))
-                    start = "DOTNET_VERSION="
-                    end = "'"
-                    s = version
-                    version = (s.split(start))[1].split(end)[0][0:3]
-
-                    #compare to latest version
-                    latestVersion = get_versions.getCurrentDotnetVersion()
-                    if version < latestVersion:
-                        print(bcolors.WARNING + "Using outdated .NET version - consider upgrading to " + latestVersion + bcolors.ENDC)
-
-                    #run CVE check for .net version
-                    cve_check.dotnetCVEs(image, version)
-
+        #print warning if current version is EOL
+        if versionUsed in EOLversions:
+            print(bcolors.FAIL + "Using end of life .NET version!" + bcolors.ENDC)
 
     checkDockerHistory(image)
     #checkImageVersion(image)
-    checkNodeVersions(image)
 
 
 

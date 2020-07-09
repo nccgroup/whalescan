@@ -16,7 +16,7 @@ def getCurrentDotnetVersion():
     url = 'https://dotnet.microsoft.com/download'
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
-    # print(soup)
 
+    #parse latest version from release page
     version = soup.find_all('h2')
     return version[0].text[-3:]

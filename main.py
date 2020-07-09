@@ -9,6 +9,7 @@ import config_file_checks
 import docker_version_checks
 import image_checks
 import subprocess
+import cve_check
 
 client = docker.from_env()
 APIClient = docker.APIClient(base_url='')
@@ -17,7 +18,6 @@ images = client.images.list()
 #Running checks for containers
 count = 0
 for container in client.containers.list():
-     #sleep(2)
      count+=1
      containerID = container.id[:12]
      print("\n################## Running checks for container " + containerID + " (" + str(count) + "/" + str(len(client.containers.list())) + ") ##################")
@@ -32,13 +32,12 @@ for image in images:
      count += 1
      print("\n################## Running checks for image " + str(imagestr[0]) + " (" + str(count) + "/" + str(len(images)) + ") ##################")
      image_checks.main(image)
-     #print("\n################## Checking image " + str(imagestr[0]) + " (" + str(count) + "/" + str(len(images)) + ")" + " for vulnerabilities ##################")
-
-
+     print("\n################## Checking image " + str(imagestr[0]) + " (" + str(count) + "/" + str(len(images)) + ")" + " for vulnerabilities ##################")
+     cve_check.main(image)
 
 #Checking docker version and updates
 print("\n################## Checking docker version ################## ")
-#docker_version_checks.main()
+docker_version_checks.main()
 
 
 
