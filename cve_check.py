@@ -8,6 +8,7 @@ import ares
 from ares import CVESearch
 import pprint
 import tabulate
+import docker
 import json
 from tabulate import tabulate
 
@@ -24,53 +25,90 @@ class bcolors:
 
 pp = pprint.PrettyPrinter(indent=4)
 
-def dotnetCVEs(image, version):
+def main(image):
 
-    imagestr = str(image)
-    imagestr = re.findall(r"'(.*?)'", imagestr, re.DOTALL)
-    print("\n################## Checking image " + str(imagestr[0]) + " for vulnerabilities ##################")
+    client = docker.from_env()
+    APIClient = docker.APIClient(base_url='')
+    pp = pprint.PrettyPrinter(indent=4)
+    images = client.images.list()
 
-    # check .net version for CVEs
-    url = 'https://github.com/dotnet/announcements/issues?q=is%3Aopen+is%3Aissue+label%3A%22.NET+Core+' + version[0:3] + '%22+label%3ASecurity'
-    page = requests.get(url)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    # print(soup)
+    # get list of images
+    cli = docker.APIClient(base_url='')
+    client = docker.from_env()
 
-    main_content = soup.find('div', attrs={'class': 'Box mt-3 Box--responsive hx_Box--firstRowRounded0'})
-    # get latest version
-    content = str(main_content.find('div', attrs={'aria-label': 'Issues'}))
+########################################################################################################################
 
-    name_pattern = re.compile(r'CVE-[0-9]{4}-[0-9]{4}')
+    def dotnetCVEs(version):
 
-    #create dict of CVE ID and relevant information
-    CVEs = dict(dict.fromkeys(name_pattern.findall(content)))
+        # Parse CVEs from advisory page
+        url = 'https://github.com/dotnet/announcements/issues?q=is%3Aopen+is%3Aissue+label%3A%22.NET+Core+' + version[0:3] + '%22+label%3ASecurity'
+        page = requests.get(url)
+        soup = BeautifulSoup(page.content, 'html.parser')
 
-    if CVEs != None:
-        print(bcolors.WARNING + "Found following CVEs for .net version " + version + bcolors.ENDC)
+        main_content = soup.find('div', attrs={'class': 'Box mt-3 Box--responsive hx_Box--firstRowRounded0'})
+        content = str(main_content.find('div', attrs={'aria-label': 'Issues'}))
 
-        #get more detail for the CVEs and save it to a dict [CVE: {cve info}
-        for c in CVEs:
-            url = 'https://services.nvd.nist.gov/rest/json/cve/1.0/' + c
-            response = requests.get(url)
-            json_data = json.loads(response.text)
+        name_pattern = re.compile(r'CVE-[0-9]{4}-[0-9]{4}')
+        #initialise dict of CVE ID and relevant information
+        CVEs = dict(dict.fromkeys(name_pattern.findall(content)))
 
-            severity = json_data['result']['CVE_Items'][0]['impact']['baseMetricV3']['cvssV3']['baseSeverity']
-            riskScore = json_data['result']['CVE_Items'][0]['impact']['baseMetricV3']['cvssV3']['baseScore']
-            summary = json_data['result']['CVE_Items'][0]['cve']['description']['description_data'][0]['value']
+        if CVEs != None:
+            print(bcolors.WARNING + "Found following CVEs for .NET version " + version + bcolors.ENDC)
 
-            CVEs[c] = [severity, riskScore, summary]
+            #get more detail for the CVEs and save it to a dict [CVE: {cve info}]
+            for c in CVEs:
+                #query nvd advisory for information relating to CVE IS
+                url = 'https://services.nvd.nist.gov/rest/json/cve/1.0/' + c
+                response = requests.get(url)
+                json_data = json.loads(response.text)
 
-    t = PrettyTable(['CVE ID', 'Severity', 'Summary'])
-    t._max_width = {"Summary": 60}
+                #parse severity, score and summary, save to dict
+                severity = json_data['result']['CVE_Items'][0]['impact']['baseMetricV3']['cvssV3']['baseSeverity']
+                riskScore = json_data['result']['CVE_Items'][0]['impact']['baseMetricV3']['cvssV3']['baseScore']
+                summary = json_data['result']['CVE_Items'][0]['cve']['description']['description_data'][0]['value']
 
-    pp.pprint(CVEs)
-    # create a row in the table for each CVE
-    for c in CVEs:
-        severity = str(CVEs[c][0]) + ' (' + str(CVEs[c][1]) + ")"
-        summary = str(CVEs[c][2])
-        t.add_row([c, severity, summary])
+                CVEs[c] = [severity, riskScore, summary]
 
-    print(t)
+                #initialise table of CVEs
+                t = PrettyTable(['CVE ID', 'Severity', 'Summary'])
+                t._max_width = {"Summary": 60}
 
+            # create a row in the table for each CVE
+            for c in CVEs:
+                severity = str(CVEs[c][0]) + ' (' + str(CVEs[c][1]) + ")"
+                summary = str(CVEs[c][2])
+                t.add_row([c, severity, summary])
+
+            print(t)
+
+#######################################################################################################################
+
+    ########################################## checking if dotnet is running ###########################################
+    if(cli.inspect_image(image.id)['Config']['Env'] != None):
+        if ('DOTNET_RUNNING_IN_CONTAINER=true' in cli.inspect_image(image.id)['Config']['Env']):
+
+            # Check if it is DOTNET_SDK
+            if re.search('DOTNET_SDK_VERSION', str(cli.inspect_image(image.id)['Config']['Env'])):
+                # get .net sdk version
+                print('\n[#] Dotnet running, checking version...')
+                r = re.compile(".*DOTNET_SDK_VERSION.*")
+                sdk_version = str(list(filter(r.match, cli.inspect_image(image.id)['Config']['Env'])))
+                start = "DOTNET_SDK_VERSION="
+                end = "'"
+                s = sdk_version
+                sdk_version = (s.split(start))[1].split(end)[0][0:3]
+                dotnetCVEs(sdk_version)
+
+            # Check if it is DOTNET
+            if re.search('DOTNET_VERSION', str(cli.inspect_image(image.id)['Config']['Env'])):
+                # get .net version being used
+                print('\n[#] Dotnet running, checking version...')
+                r = re.compile(".*DOTNET_VERSION.*")
+                version = str(list(filter(r.match, cli.inspect_image(image.id)['Config']['Env'])))
+                start = "DOTNET_VERSION="
+                end = "'"
+                s = version
+                version = (s.split(start))[1].split(end)[0][0:3]
+                dotnetCVEs(version)
 
 
