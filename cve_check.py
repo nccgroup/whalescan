@@ -83,6 +83,30 @@ def main(image):
 
 #######################################################################################################################
 
+    def checkifEOL(versionUsed):
+
+        # check if it is end of life
+        EOLversions = []
+        url = 'https://github.com/dotnet/core/blob/master/microsoft-support.md'
+        page = requests.get(url)
+        soup = BeautifulSoup(page.content, 'html.parser')
+
+        main_content = soup.findAll('table')[1]
+        tbody = main_content.findAll('tbody')
+
+        #get array of EOL versions
+        for tr in tbody:
+            tr = tr.findAll("tr")
+            # print(tr)
+            for each_tr in tr:
+                versionString = each_tr.findAll("td")[0].text
+                version = versionString[-3:]
+                EOLversions.append(version)
+
+        #print warning if current version is EOL
+        if versionUsed in EOLversions:
+            print(bcolors.FAIL + "Using end of life .NET version!" + bcolors.ENDC)
+
     ########################################## checking if dotnet is running ###########################################
     if(cli.inspect_image(image.id)['Config']['Env'] != None):
         if ('DOTNET_RUNNING_IN_CONTAINER=true' in cli.inspect_image(image.id)['Config']['Env']):
@@ -97,6 +121,7 @@ def main(image):
                 end = "'"
                 s = sdk_version
                 sdk_version = (s.split(start))[1].split(end)[0][0:3]
+                checkifEOL(sdk_version)
                 dotnetCVEs(sdk_version)
 
             # Check if it is DOTNET
@@ -109,6 +134,7 @@ def main(image):
                 end = "'"
                 s = version
                 version = (s.split(start))[1].split(end)[0][0:3]
+                checkifEOL(version)
                 dotnetCVEs(version)
 
 
