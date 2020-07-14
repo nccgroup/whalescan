@@ -53,7 +53,7 @@ def main(image):
         CVEs = dict(dict.fromkeys(name_pattern.findall(content)))
 
         if CVEs != None:
-            print(bcolors.WARNING + "Found following CVEs for .NET version " + version + bcolors.ENDC)
+            print(bcolors.FAIL + "Found following CVEs for .NET version " + version + bcolors.ENDC)
 
             #get more detail for the CVEs and save it to a dict [CVE: {cve info}]
             for c in CVEs:
@@ -106,6 +106,9 @@ def main(image):
         #print warning if current version is EOL
         if versionUsed in EOLversions:
             print(bcolors.FAIL + "Using end of life .NET version!" + bcolors.ENDC)
+
+    def test(container):
+        print(container.id[:12] + "aaaaaaaaaaaaaaa")
 
     ########################################## checking if dotnet is running ###########################################
     if(cli.inspect_image(image.id)['Config']['Env'] != None):

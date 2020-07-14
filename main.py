@@ -21,8 +21,8 @@ for container in client.containers.list():
      count+=1
      containerID = container.id[:12]
      print("\n################## Running checks for container " + containerID + " (" + str(count) + "/" + str(len(client.containers.list())) + ") ##################")
-     #container_checks.main(containerID)
-     break
+     container_checks.main(container)
+
 
 count = 0
 for image in images:
@@ -43,6 +43,6 @@ docker_version_checks.main()
 
 #Checking configuration files for vulnerabilities
 print("\n################## Checking config files ################## ")
-#config_file_checks.main()
+config_file_checks.main()
 
 

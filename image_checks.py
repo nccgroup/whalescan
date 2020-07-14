@@ -75,32 +75,30 @@ def main(image):
                     image = re.findall(r"'(.*?)'", image, re.DOTALL)
                     print(bcolors.WARNING + "Cache attack: Image " + str(image[0]) + " is not using the latest tag. This should be used to get the most up to date image. " + bcolors.ENDC)
 
-    def checkifEOL(versionUsed):
+    def updateMethod(image):
+        print("\n[#] Checking update method...")
+        image_history = image.history()
+        image = str(image)
+        image = re.findall(r"'(.*?)'", image, re.DOTALL)
 
-        # check if it is end of life
-        EOLversions = []
-        url = 'https://github.com/dotnet/core/blob/master/microsoft-support.md'
-        page = requests.get(url)
-        soup = BeautifulSoup(page.content, 'html.parser')
+        # check if ADD command is used in docker history
+        for layer in image_history:
+            print(layer)
+            docker_commands = layer.get('CreatedBy')
+            if 'ADD' in docker_commands:
+                add_used = 1
+            if 'Invoke-WebRequest' in docker_commands:
+                if docker_commands.find('Invoke-WebRequest') == -1:
+                    if 'Get-FileHash' not in docker_commands:
+                        iwr_used = 1
 
-        main_content = soup.findAll('table')[1]
-        tbody = main_content.findAll('tbody')
 
-        #get array of EOL versions
-        for tr in tbody:
-            tr = tr.findAll("tr")
-            # print(tr)
-            for each_tr in tr:
-                versionString = each_tr.findAll("td")[0].text
-                version = versionString[-3:]
-                EOLversions.append(version)
 
-        #print warning if current version is EOL
-        if versionUsed in EOLversions:
-            print(bcolors.FAIL + "Using end of life .NET version!" + bcolors.ENDC)
+
 
     checkDockerHistory(image)
     #checkImageVersion(image)
+    #updateMethod(image)
 
 
 

@@ -54,7 +54,7 @@ def main():
 
             #if version being used is out of date, print warning and check for CVEs
             if version.parse(current_version) < version.parse(latest_version):
-                print(bcolors.WARNING + "\n  Outdated version of Docker: Update Docker Engine to get latest security patches." + bcolors.ENDC)
+                print(bcolors.WARNING + "\nOutdated version of Docker: Update Docker Engine to get latest security patches." + bcolors.ENDC)
 
                 # get release data from docker release page
                 url = 'https://docs.docker.com/engine/release-notes/'
@@ -72,6 +72,7 @@ def main():
                 f = open("releaseinfo.txt", "w")
                 f.write(release_info)
 
+                #regex to find CVEs
                 cve_pattern = re.compile(r'CVE-[0-9]{4}-[0-9]{4,5}')
 
                 # Search for CVEs, and save to dict
