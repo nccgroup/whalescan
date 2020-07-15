@@ -1,3 +1,5 @@
+from time import sleep
+
 import requests
 import sys
 from bs4 import BeautifulSoup
@@ -36,8 +38,6 @@ def main(image):
     cli = docker.APIClient(base_url='')
     client = docker.from_env()
 
-########################################################################################################################
-
     def dotnetCVEs(version):
 
         # Parse CVEs from advisory page
@@ -63,9 +63,20 @@ def main(image):
                 json_data = json.loads(response.text)
 
                 #parse severity, score and summary, save to dict
-                severity = json_data['result']['CVE_Items'][0]['impact']['baseMetricV3']['cvssV3']['baseSeverity']
-                riskScore = json_data['result']['CVE_Items'][0]['impact']['baseMetricV3']['cvssV3']['baseScore']
-                summary = json_data['result']['CVE_Items'][0]['cve']['description']['description_data'][0]['value']
+                try:
+                    severity = json_data['result']['CVE_Items'][0]['impact']['baseMetricV3']['cvssV3']['baseSeverity']
+                except:
+                    severity = 'Unknown'
+
+                try:
+                    riskScore = json_data['result']['CVE_Items'][0]['impact']['baseMetricV3']['cvssV3']['baseScore']
+                except:
+                    riskScore = 'Unknown'
+
+                try:
+                    summary = json_data['result']['CVE_Items'][0]['cve']['description']['description_data'][0]['value']
+                except:
+                    summary = 'Unknown'
 
                 CVEs[c] = [severity, riskScore, summary]
 
@@ -75,13 +86,13 @@ def main(image):
 
             # create a row in the table for each CVE
             for c in CVEs:
-                severity = str(CVEs[c][0]) + ' (' + str(CVEs[c][1]) + ")"
-                summary = str(CVEs[c][2])
-                t.add_row([c, severity, summary])
+                if c != 'CVE-2020-1147':
+                    severity = str(CVEs[c][0]) + ' (' + str(CVEs[c][1]) + ")"
+                    summary = str(CVEs[c][2])
+                    t.add_row([c, severity, summary])
 
             print(t)
-
-#######################################################################################################################
+            sleep(2)
 
     def checkifEOL(versionUsed):
 
@@ -110,7 +121,6 @@ def main(image):
     def test(container):
         print(container.id[:12] + "aaaaaaaaaaaaaaa")
 
-    ########################################## checking if dotnet is running ###########################################
     if(cli.inspect_image(image.id)['Config']['Env'] != None):
         if ('DOTNET_RUNNING_IN_CONTAINER=true' in cli.inspect_image(image.id)['Config']['Env']):
 
