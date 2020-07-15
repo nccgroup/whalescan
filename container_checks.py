@@ -47,16 +47,14 @@ def main(container):
 
     #check whether docker services are mapped to any sensitive ports
     def checkDockerPortMappings(container):
-        print("\n[#] Checking port mappings for container... ")
 
         cli = docker.APIClient(base_url='')
-        print(container.id[:12])
 
         port_mappings = cli.port(container.id, 80)
         if port_mappings != None:
             for p in port_mappings:
                 if((p['HostIp'] == '0.0.0.0') & ([p['HostPort'] == '2375'])):
-                    print("Root access: Docker daemon is listening on ")
+                    print(bcolors.WARNING + "Docker daemon is listening on " + p['HostPort'] + bcolors.ENDC)
 
 
     #check logical drives storing containers
@@ -128,8 +126,7 @@ def main(container):
 
 
 
-    #checkNewPrivileges(container)
     checkContainerStorage(container)
-    #healthCheckVerification(container)
+    checkDockerPortMappings(container)
     checkIsolation(container)
     checkPendingUpdates(container)

@@ -61,19 +61,20 @@ def main(image):
         if iwr_used == 1:
             print(bcolors.WARNING + "Unverified files: Image " + str(image[0]) + " uses ""Invoke-WebRequest"" to download files without any hash verification. " + bcolors.ENDC)
 
-    def checkImageVersion(image):
+    def checkTags(image):
+
+        print("\n[#] Checking tags...")
 
         #Get all commands used in dockerfile
         image_history = image.history()
         for layer in image_history:
             tag = layer.get('Tags')
 
-            #if latest tag is not used
+            #gets tags being used in container
             if str(tag) != 'None':
-                if 'latest' not in str(tag):
-                    image = str(image)
-                    image = re.findall(r"'(.*?)'", image, re.DOTALL)
-                    print(bcolors.WARNING + "Cache attack: Image " + str(image[0]) + " is not using the latest tag. This should be used to get the most up to date image. " + bcolors.ENDC)
+                image = str(image)
+                image = re.findall(r"'(.*?)'", image, re.DOTALL)
+                print(bcolors.WARNING + "Image " + str(image[0]) + " is using the following tags: " + ', '.join(tag) + bcolors.ENDC)
 
     def updateMethod(image):
         print("\n[#] Checking update method...")
@@ -97,7 +98,7 @@ def main(image):
 
 
     checkDockerHistory(image)
-    #checkImageVersion(image)
+    checkTags(image)
     #updateMethod(image)
 
 
