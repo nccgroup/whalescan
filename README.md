@@ -6,9 +6,11 @@ Vulnerability scanner for windows containers.
 
 
 ```
-git clone 
+git clone https://github.com/saira-h/whalescan
 
 pip install -r requirements.txt
+
+./main.py
 ```
 
 ## Overview
