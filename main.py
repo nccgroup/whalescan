@@ -26,7 +26,7 @@ for container in client.containers.list():
 
 count = 0
 for image in images:
-     #sleep(2)
+     sleep(2)
      imagestr = str(image)
      imagestr = re.findall(r"'(.*?)'", imagestr, re.DOTALL)
      count += 1
