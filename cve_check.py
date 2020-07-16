@@ -85,10 +85,9 @@ def main(image):
 
             # create a row in the table for each CVE
             for c in CVEs:
-                if c != 'CVE-2020-1147':
-                    severity = str(CVEs[c][0]) + ' (' + str(CVEs[c][1]) + ")"
-                    summary = str(CVEs[c][2])
-                    t.add_row([c, severity, summary])
+                severity = str(CVEs[c][0]) + ' (' + str(CVEs[c][1]) + ")"
+                summary = str(CVEs[c][2])
+                t.add_row([c, severity, summary])
 
             print(t)
             sleep(2)
