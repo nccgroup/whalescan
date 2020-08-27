@@ -1,3 +1,15 @@
+'''
+Released as open source by NCC Group Plc - https://www.nccgroup.com/
+
+Developed by Saira Hassan, @saiii_h
+
+https://www.github.com/nccgroup/whalescan
+
+Released under Apache license 2.0, see LICENSE for more information
+
+'''
+
+
 import json
 from lib2to3.pgen2.grammar import line
 
