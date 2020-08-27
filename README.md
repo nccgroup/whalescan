@@ -1,6 +1,16 @@
 # Whalescan
 
-Vulnerability scanner for windows containers.
+Released as open source by NCC Group Plc - https://www.nccgroup.com/
+
+Developed by Saira Hassan ([@saiii_h](https://twitter.com/saiii_h))
+
+https://github.com/nccgroup/whalescan
+
+Released under Apache license 2.0, see LICENSE for more information
+
+## Introduction
+Whalescan is a vulnerability scanner for Windows containers, which performs several benchmark checks, as well as checking for CVEs/vulnerable packages on the container. It also checks the config and Docker files for misconfigurations. This tool can be used as part of a Windows
+container review on local copies of the containers, and on the host itself to enhance security.
 
 ## Getting Started
 
@@ -15,7 +25,7 @@ pip install -r requirements.txt
 
 ## Overview
 
-Whalescan performs several benchmark checks, as well as checking for CVEs.
+Whalescan performs the following checks on containers:
 
 * Container checks 
 
@@ -37,9 +47,4 @@ Whalescan performs several benchmark checks, as well as checking for CVEs.
     
 * Checks permissions of docker configuration files 
 * Checks if additional devices have been mapped to containers
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
 
