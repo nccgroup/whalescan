@@ -2,7 +2,7 @@
 
 Released as open source by NCC Group Plc - https://www.nccgroup.com/
 
-Developed by Saira Hassan ([@saiii_h](https://twitter.com/saiii_h))
+Developed by Saira Hassan ([@saiber_saira](https://twitter.com/saiber_saira))
 
 https://github.com/nccgroup/whalescan
 
