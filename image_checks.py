@@ -28,16 +28,7 @@ import cve_check
 import get_versions
 
 def main(image):
-    class bcolors:
-        HEADER = '\033[95m'
-        OKBLUE = '\033[94m'
-        OKGREEN = '\033[92m'
-        CGREENBG = '\33[92m'
-        WARNING = '\033[93m'
-        FAIL = '\033[91m'
-        ENDC = '\033[0m'
-        BOLD = '\033[1m'
-        UNDERLINE = '\033[4m'
+    
 
     client = docker.from_env()
     APIClient = docker.APIClient(base_url='')
@@ -67,9 +58,9 @@ def main(image):
 
 
         if add_used == 1:
-            print(bcolors.WARNING + "Unverified files: Image " + str(image[0]) + " contains ""ADD"" command in docker history, which retrieves and unpacks files from remote URLs. Docker COPY should be used instead."+ bcolors.ENDC)
+            print("Unverified files: Image " + str(image[0]) + " contains ""ADD"" command in docker history, which retrieves and unpacks files from remote URLs. Docker COPY should be used instead.")
         if iwr_used == 1:
-            print(bcolors.WARNING + "Unverified files: Image " + str(image[0]) + " uses ""Invoke-WebRequest"" to download files without any hash verification. " + bcolors.ENDC)
+            print("Unverified files: Image " + str(image[0]) + " uses ""Invoke-WebRequest"" to download files without any hash verification. ")
 
     def checkTags(image):
 
@@ -84,7 +75,7 @@ def main(image):
             if str(tag) != 'None':
                 image = str(image)
                 image = re.findall(r"'(.*?)'", image, re.DOTALL)
-                print(bcolors.WARNING + "Image " + str(image[0]) + " is using the following tags: " + ', '.join(tag) + bcolors.ENDC)
+                print("Image " + str(image[0]) + " is using the following tags: " + ', '.join(tag))
 
     def updateMethod(image):
         print("\n[#] Checking update method...")
