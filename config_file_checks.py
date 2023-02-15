@@ -28,16 +28,7 @@ import re
 import docopt
 
 def main():
-    class bcolors:
-        HEADER = '\033[95m'
-        OKBLUE = '\033[94m'
-        OKGREEN = '\033[92m'
-        CGREENBG = '\33[92m'
-        WARNING = '\033[93m'
-        FAIL = '\033[91m'
-        ENDC = '\033[0m'
-        BOLD = '\033[1m'
-        UNDERLINE = '\033[4m'
+    
 
     def checkDockerDaemonJsonFile():
         print("\n[#] Checking IP:port docker daemon is listening on...")
@@ -50,10 +41,10 @@ def main():
             loaded_json = json.loads(daemon_config)
             for x in loaded_json:
                 if (str(loaded_json[x]) == str(['tcp://0.0.0.0:2375'])):
-                    print(bcolors.WARNING + "   Root access: Docker daemon can be publicly accessed, root access to host possible" + bcolors.ENDC)
+                    print("   Root access: Docker daemon can be publicly accessed, root access to host possible")
         #file does not exist
         else:
-            print(bcolors.WARNING + "     Daemon.json file not found" + bcolors.ENDC)
+            print("     Daemon.json file not found")
 
     def checkFilePermissions():
         #get list of all def files in directory
@@ -69,7 +60,7 @@ def main():
             f = win32security.GetFileSecurity(file, win32security.OWNER_SECURITY_INFORMATION)
             (username, domain, sid_name_use) = win32security.LookupAccountSid(None, f.GetSecurityDescriptorOwner())
             if username != 'Administrator':
-                print(bcolors.WARNING + "   File " + file + " is not owned by Administrator" + bcolors.ENDC)
+                print("   File " + file + " is not owned by Administrator")
 
             #Check who has write permissions using powershell get-acl function, then export to csv
             print("\n[#] Checking file permissions for " + file + "...")
@@ -87,12 +78,12 @@ def main():
                 for row in csv_reader:
                     if "Administrator" or "NT AUTHORITY\SYSTEM" not in row["IdentityReference"]:
                         if row["FileSystemRights"] in disallowed_permissions:
-                            print(bcolors.WARNING + row["IdentityReference"] + " has " + row["FileSystemRights"] + " rights on " + file + bcolors.ENDC)
+                            print(row["IdentityReference"] + " has " + row["FileSystemRights"] + " rights on " + file)
                             dangerous_permissions = 1
 
                 #if there are any users with dangerous permissions over the .def file
                 if dangerous_permissions == 1:
-                    print(bcolors.WARNING + "Only Administrators should be able to modify .def files! " + bcolors.ENDC)
+                    print("Only Administrators should be able to modify .def files! ")
 
 
     #Check whether Administrator owns C:\ProgramData\docker, which contains sensitive files such as certificates and keys
@@ -104,7 +95,7 @@ def main():
         (username, domain, sid_name_use) = win32security.LookupAccountSid(None, f.GetSecurityDescriptorOwner())
 
         if username != 'Administrator':
-            print(bcolors.WARNING + "Directory C:\\ProgramData\docker is not owned by Administrator" + bcolors.ENDC)
+            print("Directory C:\\ProgramData\docker is not owned by Administrator")
         #else:
             #int("C:\ProgramData\docker not found")
 
