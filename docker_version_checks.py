@@ -33,16 +33,7 @@ import requests
 pp = pprint.PrettyPrinter(indent=4)
 
 def main():
-    class bcolors:
-        HEADER = '\033[95m'
-        OKBLUE = '\033[94m'
-        OKGREEN = '\033[92m'
-        CGREENBG = '\33[92m'
-        WARNING = '\033[93m'
-        FAIL = '\033[91m'
-        ENDC = '\033[0m'
-        BOLD = '\033[1m'
-        UNDERLINE = '\033[4m'
+    
 
     client = docker.from_env()
     APIClient = docker.APIClient(base_url='')
@@ -67,7 +58,7 @@ def main():
 
             #if version being used is out of date, print warning and check for CVEs
             if version.parse(current_version) < version.parse(latest_version):
-                print(bcolors.WARNING + "\nOutdated version of Docker: Update Docker Engine to get latest security patches." + bcolors.ENDC)
+                print("\nOutdated version of Docker: Update Docker Engine to get latest security patches.")
 
                 # get release data from docker release page
                 url = 'https://docs.docker.com/engine/release-notes/'
@@ -94,7 +85,7 @@ def main():
                 if CVEs != None:
                     t = prettytable.PrettyTable(['CVE ID', 'Severity', 'Summary'])
 
-                    print(bcolors.WARNING + "Found following CVEs for docker engine" + bcolors.ENDC)
+                    print("Found following CVEs for docker engine")
 
                     # get more detail for the CVEs and save it to a dict [CVE: {cve info}]
                     for c in CVEs:
