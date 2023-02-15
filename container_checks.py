@@ -30,16 +30,7 @@ from docker import APIClient
 pp = pprint.PrettyPrinter(indent=4)
 
 def main(container):
-    class bcolors:
-        HEADER = '\033[95m'
-        OKBLUE = '\033[94m'
-        OKGREEN = '\033[92m'
-        CGREENBG = '\33[92m'
-        WARNING = '\033[93m'
-        FAIL = '\033[91m'
-        ENDC = '\033[0m'
-        BOLD = '\033[1m'
-        UNDERLINE = '\033[4m'
+    
 
     client = docker.from_env()
     APIClient = docker.APIClient(base_url='')
@@ -54,7 +45,7 @@ def main(container):
 
         sec_op_value = host_config.get("SecurityOpt")
         if sec_op_value == None:
-            print(bcolors.WARNING + "   Privilege escalation: Security options not set - processes are able to gain additional privileges" + bcolors.ENDC)
+            print("   Privilege escalation: Security options not set - processes are able to gain additional privileges")
 
     #check whether docker services are mapped to any sensitive ports
     def checkDockerPortMappings(container):
@@ -65,7 +56,7 @@ def main(container):
         if port_mappings != None:
             for p in port_mappings:
                 if((p['HostIp'] == '0.0.0.0') & ([p['HostPort'] == '2375'])):
-                    print(bcolors.WARNING + "Docker daemon is listening on " + p['HostPort'] + bcolors.ENDC)
+                    print("Docker daemon is listening on " + p['HostPort'])
 
 
     #check logical drives storing containers
@@ -75,14 +66,14 @@ def main(container):
         container_info = client.info()
         logical_drive = container_info.get('DockerRootDir')[0:3]
         if(logical_drive == "C:\\"):
-            print(bcolors.WARNING + "   Potential DoS: Under attack, the C: drive could fill up, causing containers and the host itself to become unresponsive" + bcolors.ENDC)
+            print("   Potential DoS: Under attack, the C: drive could fill up, causing containers and the host itself to become unresponsive")
 
     def checkIsolation(container):
 
         string = 'docker inspect --format={{.HostConfig.Isolation}} ' + container.id[:12]
         result = subprocess.getoutput(string)
         if result == 'process':
-            print(bcolors.WARNING + "\n   Container " + container.id[:12] + ' running as process' + bcolors.ENDC)
+            print("\n   Container " + container.id[:12] + ' running as process')
 
     def checkPendingUpdates(container):
         print("\n[#] Checking if there are any pending updates... ")
@@ -127,13 +118,12 @@ def main(container):
 
         #if there are pending updates available, print warning and search for related CVEs
         if pending_updates:
-            print(bcolors.WARNING + "\n   Following updates are pending in container " + container.id[:12] + ": " + ', '.join(pending_updates) + bcolors.ENDC)
-            print(bcolors.WARNING + "\n   To update, run following commands in the container: " + bcolors.ENDC)
-            print(bcolors.WARNING + "   $ci = New-CimInstance -Namespace root/Microsoft/Windows/WindowsUpdate -ClassName MSFT_WUOperationsSession" + \
+            print("\n   Following updates are pending in container " + container.id[:12] + ": " + ', '.join(pending_updates))
+            print("\n   To update, run following commands in the container: ")
+            print("   $ci = New-CimInstance -Namespace root/Microsoft/Windows/WindowsUpdate -ClassName MSFT_WUOperationsSession" + \
                                             "\n   Invoke-CimMethod -InputObject $ci -MethodName ApplyApplicableUpdates" + \
-                                            "\n   Restart-Computer; exit" + bcolors.ENDC)
-            #print(bcolors.WARNING + "\n   " + bcolors.ENDC)
-            #print(bcolors.WARNING + "\n   " + bcolors.ENDC)
+                                            "\n   Restart-Computer; exit")
+            
 
 
 
