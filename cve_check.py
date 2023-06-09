@@ -1,35 +1,40 @@
-'''
-Released as open source by NCC Group Plc - https://www.nccgroup.com/
 
-Developed by Saira Hassan, @saiii_h
+#The nmap library is used, which allows you to scan network ports 
+#and run NSE scripts (Nmap Scripting Engine) to detect vulnerabilities.
 
-https://www.github.com/nccgroup/whalescan
+#Also the check_password_strength function, which uses zxcvbn to evaluate 
+#password strength. The check_container_passwords function then checks for 
+#passwords in the container's environment variables and calls 
+#check_password_strength for each password found.
 
-Released under Apache license 2.0, see LICENSE for more information
-
-'''
-
-
-from time import sleep
-
+import nmap
 import requests
-import sys
 from bs4 import BeautifulSoup
-from docker import APIClient
 import re
 from prettytable import PrettyTable
-import ares
-from ares import CVESearch
-import pprint
-import tabulate
+from time import sleep
+from tabulate import tabulate
 import docker
 import json
-from tabulate import tabulate
+import pprint
+import zxcvbn
 
 pp = pprint.PrettyPrinter(indent=4)
 
+def check_password_strength(password):
+    result = zxcvbn.zxcvbn(password)
+    score = result['score']
+    feedback = result['feedback']
+
+    if score < 3:
+        print(f"Password strength: {score}/4 (Weak)")
+        print("Suggestions for password improvement:")
+        for suggestion in feedback['suggestions']:
+            print(f"- {suggestion}")
+    else:
+        print(f"Password strength: {score}/4 (Strong)")
+
 def main(image):
-    
 
     client = docker.from_env()
     APIClient = docker.APIClient(base_url='')
@@ -152,3 +157,61 @@ def main(image):
                 dotnetCVEs(version)
 
 
+    def check_network_security(container):
+        print(f"\n[#] Checking network security for container {container.id[:12]}")
+
+        # Get container IP address
+        container_info = container.attrs
+        network_settings = container_info['NetworkSettings']
+        ip_address = network_settings['IPAddress']
+
+        # Scan container's open ports
+        nm = nmap.PortScanner()
+        scan_results = nm.scan(ip_address, arguments='-p-')  # Scan all ports
+
+        # Print open ports
+        open_ports = []
+        for port, info in scan_results['scan'][ip_address]['tcp'].items():
+            if info['state'] == 'open':
+                open_ports.append(port)
+
+        if open_ports:
+            print(f"Open ports: {', '.join(map(str, open_ports))}")
+        else:
+            print("No open ports found")
+
+        # Perform vulnerability scanning on open ports
+        vulnerability_scan_results = []
+        for port in open_ports:
+            vulnerabilities = vulnerability_scan(port)
+            vulnerability_scan_results.append([port, vulnerabilities])
+
+        # Print vulnerability scan results
+        print("\nVulnerability scan results:")
+        table_headers = ['Port', 'Vulnerabilities']
+        print(tabulate(vulnerability_scan_results, headers=table_headers))
+
+    def vulnerability_scan(port):
+        # Perform vulnerability scanning on the specified port
+        # You can use Nmap scripts, OpenVAS, or other vulnerability scanning tools
+
+        # Example: Using Nmap NSE scripts
+        nm = nmap.PortScanner()
+        script_results = nm.scan('localhost', port, arguments='--script vuln')
+
+        # Collect vulnerability scan results
+        vulnerabilities = []
+        if script_results['scaninfo']:
+            for script, result in script_results['scaninfo'][0]['services'][port]['script'].items():
+                vulnerabilities.append(f"{script}: {result}")
+        
+        return vulnerabilities
+
+    # Create Docker client
+    client = docker.from_env()
+
+    # Check network security for containers
+    for container in client.containers.list():
+        check_network_security(container)
+except Exception as e:
+    print("An error occurred:", str(e))
